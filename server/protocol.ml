@@ -3,24 +3,28 @@ type request =
   | Cancel
   | Image
   | Heartbeat
+  | Exam1
+  | Exam2
+  | Exam3
 
 type response =
   | Success
   | Fail
   | Ack
-  | Exc
+  | Exc of string
 
 let request_to_string = function
   | Init -> "init"
   | Cancel -> "cancel"
   | Image -> "image"
   | Heartbeat -> "heartbeat"
+  | _ -> "unknown"
 
 let response_to_string = function
   | Success -> "success"
   | Fail -> "fail"
   | Ack -> "ack"
-  | Exc -> "exc"
+  | Exc str -> "exc " ^ str
 
 type connection = {ic : in_channel; oc : out_channel}
 

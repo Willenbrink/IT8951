@@ -549,7 +549,7 @@ bool init()
   //Get Device Info
   GetIT8951SystemInfo(&gstI80DevInfo);
 
-  gpFrameBuf = malloc(gstI80DevInfo.usPanelW * gstI80DevInfo.usPanelH);
+  gpFrameBuf = (uint8_t *) malloc(gstI80DevInfo.usPanelW * gstI80DevInfo.usPanelH);
   if (!gpFrameBuf)
   {
     perror("malloc error!\n");
@@ -582,7 +582,7 @@ void cancel()
 //-----------------------------------------------------------
 //Test function 2---Example of Display Flow
 //-----------------------------------------------------------
-void IT8951DisplayExample()
+void example1()
 {
   IT8951LdImgInfo stLdImgInfo;
   IT8951AreaImgInfo stAreaImgInfo;
@@ -642,7 +642,7 @@ void IT8951DisplayExample()
   IT8951DisplayArea(0,0, gstI80DevInfo.usPanelW, gstI80DevInfo.usPanelH, 2);
 }
 
-void IT8951DisplayExample2()
+void example2()
 {
   IT8951LdImgInfo stLdImgInfo;
   IT8951AreaImgInfo stAreaImgInfo;
@@ -691,7 +691,7 @@ void IT8951DisplayExample2()
 
 extern uint16_t bmp01[];
 
-void IT8951_GUI_Example()
+void example3()
 {
   IT8951LdImgInfo stLdImgInfo;
   IT8951AreaImgInfo stAreaImgInfo;

@@ -13,7 +13,7 @@ let rec worker conn commandlist =
     Unix.sleep 1;
     worker conn []
   | command::xs ->
-    request_to_string command |> print_endline;
+    request_to_string command |> fun s -> s ^ ": " |> print_string;
     act conn command |> response_to_string |> print_endline;
     worker conn xs
 
