@@ -521,7 +521,7 @@ void IT8951DisplayAreaBuf(uint16_t usX, uint16_t usY, uint16_t usW, uint16_t usH
 //-----------------------------------------------------------
 //Test function 1---Software Initial
 //-----------------------------------------------------------
-uint8_t IT8951_Init()
+bool init()
 {
   if (!bcm2835_init())
   {

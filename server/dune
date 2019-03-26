@@ -1,6 +1,6 @@
 (executable
   (name test)
-  (libraries unix))
+  (libraries unix ctypes ctypes.foreign))
 
 (env
   (dev

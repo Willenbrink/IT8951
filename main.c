@@ -31,8 +31,8 @@ int main (int argc, char *argv[])
 	sscanf(argv[2],"%d",&y);
 
 	IT8951_BMP_Example(x,y,argv[3]);
-	
-	IT8951_Cancel();
+
+	cancel();
 
 	return 0;
 }
