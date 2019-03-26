@@ -1,5 +1,7 @@
 type request =
   | Init
+  | Cancel
+  | Image
 
 type response =
   | Ack
