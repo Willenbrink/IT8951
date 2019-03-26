@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include "miniGUI.h"
 
@@ -126,8 +127,8 @@ typedef struct
 #define MCSR (MCSR_BASE_ADDR  + 0x0000)
 #define LISAR (MCSR_BASE_ADDR + 0x0008)
 
-uint8_t IT8951_Init(void);
-void IT8951_Cancel(void);
+bool init(void);
+void cancel(void);
 void IT8951DisplayExample(void);
 void IT8951DisplayExample2(void);
 void IT8951Display1bppExample2(void);

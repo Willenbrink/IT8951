@@ -65,35 +65,34 @@ void LCDWriteData(uint16_t usData)
 
 void LCDWriteNData(uint16_t* pwBuf, uint32_t ulSizeWordCnt)
 {
-	uint32_t i;
-
 	uint16_t wPreamble	= 0x0000;
 
 	LCDWaitForReady();
 
 	bcm2835_gpio_write(CS,LOW);
-	
+
+  //TODO only 0?
 	bcm2835_spi_transfer(wPreamble>>8);
 	bcm2835_spi_transfer(wPreamble);
-	
+
 	LCDWaitForReady();
 
-	for(i=0;i<ulSizeWordCnt;i++)
+	for(int i = 0; i < ulSizeWordCnt; i++)
 	{
 		bcm2835_spi_transfer(pwBuf[i]>>8);
 		bcm2835_spi_transfer(pwBuf[i]);
 	}
-	
-	bcm2835_gpio_write(CS,HIGH); 
-}  
+
+	bcm2835_gpio_write(CS,HIGH);
+}
 
 //-----------------------------------------------------------
 //Host controller function 4---Read Data from host data Bus
 //-----------------------------------------------------------
 uint16_t LCDReadData()
 {
-	uint16_t wRData; 
-	
+	uint16_t wRData;
+
 	uint16_t wPreamble = 0x1000;
 
 	LCDWaitForReady();
@@ -571,7 +570,7 @@ uint8_t IT8951_Init()
 	return 0;
 }
 
-void IT8951_Cancel()
+void cancel()
 {
 	free(gpFrameBuf);
 
