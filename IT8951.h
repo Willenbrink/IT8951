@@ -9,9 +9,9 @@
 #include <string.h>
 #include "miniGUI.h"
 
-#define CS 				8
-#define HRDY 	        24
-#define RESET 	        17
+#define CS        8
+#define HRDY          24
+#define RESET           17
 #define VCOM			1500 //e.g. -1.53 = 1530 = 0x5FA
 
 //prototype of structure
@@ -23,7 +23,7 @@ typedef struct IT8951LdImgInfo
     uint16_t usRotate; //Rotate mode
     uint32_t ulStartFBAddr; //Start address of source Frame buffer
     uint32_t ulImgBufBaseAddr;//Base address of target image buffer
-    
+
 }IT8951LdImgInfo;
 
 //structure prototype 2
@@ -41,8 +41,8 @@ typedef struct
     uint16_t usPanelH;
     uint16_t usImgBufAddrL;
     uint16_t usImgBufAddrH;
-    uint16_t usFWVersion[8]; 	//16 Bytes String
-    uint16_t usLUTVersion[8]; 	//16 Bytes String
+    uint16_t usFWVersion[8];  //16 Bytes String
+    uint16_t usLUTVersion[8];   //16 Bytes String
 }IT8951DevInfo;
 
 //Built in I80 Command Code
@@ -63,7 +63,7 @@ typedef struct
 #define USDEF_I80_CMD_DPY_AREA     0x0034
 #define USDEF_I80_CMD_GET_DEV_INFO 0x0302
 #define USDEF_I80_CMD_DPY_BUF_AREA 0x0037
-#define USDEF_I80_CMD_VCOM		   0x0039
+#define USDEF_I80_CMD_VCOM       0x0039
 
 //Panel
 #define IT8951_PANEL_WIDTH   1024 //it Get Device information
@@ -153,18 +153,3 @@ uint16_t IT8951GetVCOM(void);
 void IT8951SetVCOM(uint16_t vcom);
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
