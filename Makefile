@@ -3,7 +3,7 @@ CC=gcc
 TARGET=IT8951
 
 $(TARGET):$(SRCS)
-	$(CC) -shared -fPIC -Wall $(SRCS) -o $(TARGET) -lbcm2835
+	$(CC) -g -pie -Wall $(SRCS) -o $(TARGET) -lbcm2835
 
 clean:
 	rm -f $(TARGET)

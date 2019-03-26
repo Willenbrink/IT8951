@@ -9,32 +9,33 @@ let libIT = Dl.dlopen ~flags:[Dl.RTLD_LAZY] ~filename:("/home/pi/IT8951/IT8951")
 
 let funer name params = foreign ~from:libIT ~release_runtime_lock:false name params
 
-type state = {initialised : bool; ic : in_channel; oc : out_channel}
+type state = {conn : connection; initialised : bool;}
 
-let init initialised =
+let init () =
   let init () = funer "init" (void @-> returning bool) () in
-  if initialised then () else
   if init () then LLError |> raise
 
 let cancel () = funer "cancel" (void @-> returning void) ()
 
-let handle_input ({oc; initialised; ic} as state) request =
+let handle_input ({conn; initialised} as state) request =
   try match request with
-    | Heartbeat -> send oc Ack; state
-    | Init -> init initialised; {initialised = true; ic; oc}
-    | _ -> send oc (Failure "handle"); state
-  with Failure _ -> send oc Exc; state
-     | exc -> send oc Exc; raise exc
+    | Heartbeat -> Ack
+    | Init -> if not initialised then init (); Success
+    | _ -> Ack
+  with _ -> Fail
 
-let rec worker ({ic; oc; _} as state) =
-  let request = recvb ic in
-  handle_input state request
-|> worker
+let rec worker ({conn; _} as state) =
+  let state = match react conn (handle_input state) with
+    | Init, Success -> {conn; initialised = true}
+    | Init, Fail -> {conn; initialised = false}
+    | _ -> state
+  in
+  worker state
 
 
 let handle ic oc =
   (*let () = Unix.descr_of_in_channel ic |> Unix.set_nonblock in*)
-  worker {initialised = false; ic; oc}
+  worker { conn = {ic; oc}; initialised = false}
 
 let start
     ?(f = handle)

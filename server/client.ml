@@ -2,24 +2,26 @@ open Protocol
 
 let init addr = Unix.open_connection addr
 
-type state = {ic : in_channel; oc: out_channel; conn : bool}
+let rec worker conn commandlist =
+  match commandlist with
+  | [] ->
+    (match act conn Heartbeat with
+     | res ->
+       print_string "Alive: ";
+       response_to_string res |> print_endline
+    );
+    Unix.sleep 1;
+    worker conn []
+  | command::xs ->
+    request_to_string command |> print_endline;
+    act conn command |> response_to_string |> print_endline;
+    worker conn xs
 
-let rec worker ({ic; oc; conn} as state) =
-  Unix.sleep 1;
-  send oc Heartbeat;
-  Printf.fprintf stderr "Response:\n";
-  let resp = recvb ic in
-  (match resp with
-   | Ack -> Printf.fprintf stderr "Success\n"
-   | Fail -> Printf.fprintf stderr "Failure\n");
-  flush stderr;
-  worker state
 
-
-let start () =
+let start commandlist =
   let ic,oc = init (Unix.ADDR_INET(Unix.inet_addr_any, 1234)) in
   (*let () = Unix.descr_of_in_channel ic |> Unix.set_nonblock in*)
 
   try
-    worker {ic; oc; conn = false}
-  with exc -> Printf.fprintf stderr "Exception!"; raise exc
+    worker {ic; oc} commandlist
+  with exc -> Printf.fprintf stderr "Exception! "; raise exc
