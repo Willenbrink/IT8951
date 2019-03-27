@@ -1,3 +1,4 @@
+#include "bcm.h"
 #include "IT8951.h"
 
 //Global varivale
@@ -5,62 +6,21 @@ I80DevInfo devInfo;
 uint8_t* gpFrameBuf; //Host Source Frame buffer
 uint32_t frameBufSize;
 
-//-----------------------------------------------------------
-//Host controller function 1---Wait for host data Bus Ready
-//-----------------------------------------------------------
-void LCDWaitForReady()
-{
-  uint8_t ulData = bcm2835_gpio_lev(HRDY);
-  while(ulData == 0)
-  {
-    ulData = bcm2835_gpio_lev(HRDY);
-  }
-}
-
-void LCDOpenBus()
-{
-  LCDWaitForReady();
-  bcm2835_gpio_write(CS, LOW);
-}
-
-void LCDCloseBus()
-{
-  bcm2835_gpio_write(CS, HIGH);
-}
-
-uint16_t LCDTransfer(uint16_t value)
-{
-  uint16_t retVal = 0x0000;
-  retVal |= bcm2835_spi_transfer(value >> 8) << 8;
-  retVal |= bcm2835_spi_transfer(value);
-  return retVal;
-}
-
 void LCDWriteN(uint16_t wPreamble, uint16_t* data, uint32_t count)
 {
-  LCDOpenBus();
-  LCDTransfer(wPreamble);
-  LCDWaitForReady();
+  openBus();
+  transfer(wPreamble);
+  waitForBus();
   for(uint32_t i = 0; i < count; i++)
   {
-    LCDTransfer(data[i]);
+    transfer(data[i]);
   }
-  LCDCloseBus();
+  closeBus();
 }
 
 void LCDWrite(uint16_t wPreamble, uint16_t data)
 {
   LCDWriteN(wPreamble, &data, 1);
-}
-
-//-----------------------------------------------------------
-//Host controller function 2---Write command code to host data Bus
-//-----------------------------------------------------------
-void LCDWriteCmdCode(uint16_t usCmdCode)
-{
-  //Set Preamble for Write Command
-  uint16_t wPreamble = 0x6000;
-  LCDWrite(wPreamble, usCmdCode);
 }
 
 //-----------------------------------------------------------
@@ -88,16 +48,16 @@ void LCDReadNData(uint16_t* pwBuf, uint32_t ulSizeWordCnt)
 
   uint16_t wPreamble = 0x1000;
 
-  LCDOpenBus();
-  LCDTransfer(wPreamble);
-  LCDWaitForReady();
-  LCDTransfer(0x00); //dummy-value
-  LCDWaitForReady();
+  openBus();
+  transfer(wPreamble);
+  waitForBus();
+  transfer(0x00); //dummy-value
+  waitForBus();
   for(i=0;i<ulSizeWordCnt;i++)
     {
-      pwBuf[i] = LCDTransfer(0x00);
+      pwBuf[i] = transfer(0x00);
     }
-  LCDCloseBus();
+  closeBus();
 }
 
 //-----------------------------------------------------------
@@ -109,19 +69,28 @@ uint16_t LCDReadData()
   LCDReadNData(&wRData, 1);
   return wRData;
 }
+//-----------------------------------------------------------
+//Host controller function 2---Write command code to host data Bus
+//-----------------------------------------------------------
+void LCDWriteCmdCode(uint16_t usCmdCode)
+{
+  //Set Preamble for Write Command
+  uint16_t wPreamble = 0x6000;
+  LCDWrite(wPreamble, usCmdCode);
+}
 
 //-----------------------------------------------------------
 //Host controller function 5---Write command to host data Bus with aruments
 //-----------------------------------------------------------
 void LCDSendCmdArg(uint16_t usCmdCode,uint16_t* pArg, uint16_t usNumArg)
 {
-     //Send Cmd code
-     LCDWriteCmdCode(usCmdCode);
-     //Send Data
-     for(uint16_t i = 0; i < usNumArg; i++)
-     {
-         LCDWriteData(pArg[i]);
-     }
+  //Send Cmd code
+  LCDWriteCmdCode(usCmdCode);
+  //Send Data
+  for(uint16_t i = 0; i < usNumArg; i++)
+  {
+    LCDWriteData(pArg[i]);
+  }
 }
 
 //-----------------------------------------------------------
@@ -498,28 +467,12 @@ void IT8951DisplayAreaBuf(Area area, uint16_t usDpyMode, uint32_t ulDpyBufAddr)
 //-----------------------------------------------------------
 bool init()
 {
-  if (!bcm2835_init())
+  if (initBCM())
   {
     printf("bcm2835_init error \n");
     return 1;
   }
-
-  bcm2835_spi_begin();
-  bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      //default
-  bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   //default
-  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);		//default
-
-  bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
-  bcm2835_gpio_fsel(HRDY, BCM2835_GPIO_FSEL_INPT);
-  bcm2835_gpio_fsel(RESET, BCM2835_GPIO_FSEL_OUTP);
-
-  bcm2835_gpio_write(CS, HIGH);
-
   printf("****** IT8951 ******\n");
-
-  bcm2835_gpio_write(RESET, LOW);
-  bcm2835_delay(100);
-  bcm2835_gpio_write(RESET, HIGH);
 
   //Get Device Info
   devInfo = getDeviceInfo();

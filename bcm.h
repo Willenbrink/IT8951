@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 bool initBCM(); //Call once
 void waitForBus(); //Wait until bus is ready TODO check significance of this?

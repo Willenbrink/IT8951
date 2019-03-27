@@ -7,11 +7,7 @@
 
 void waitForBus()
 {
-  uint8_t data = bcm2835_gpio_lev(HRDY);
-  while(data == 0)
-  {
-    data = bcm2835_gpio_lev(HRDY);
-  }
+  while(!bcm2835_gpio_lev(HRDY));
 }
 
 void openBus()
@@ -36,7 +32,7 @@ uint16_t transfer(uint16_t value)
 bool initBCM()
 {
   if (!bcm2835_init()) {
-    return 1;
+    return true;
   }
 
   bcm2835_spi_begin();
@@ -53,5 +49,5 @@ bool initBCM()
   bcm2835_gpio_write(RESET, LOW);
   bcm2835_delay(100);
   bcm2835_gpio_write(RESET, HIGH);
-  return 0;
+  return false;
 }
