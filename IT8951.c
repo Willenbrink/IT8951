@@ -1,104 +1,19 @@
 #include "bcm.h"
 #include "IT8951.h"
+#include "IT.h"
 
 //Global varivale
 I80DevInfo devInfo;
 uint8_t* gpFrameBuf; //Host Source Frame buffer
 uint32_t frameBufSize;
 
-void LCDWriteN(uint16_t wPreamble, uint16_t* data, uint32_t count)
-{
-  openBus();
-  transfer(wPreamble);
-  waitForBus();
-  for(uint32_t i = 0; i < count; i++)
-  {
-    transfer(data[i]);
-  }
-  closeBus();
-}
-
-void LCDWrite(uint16_t wPreamble, uint16_t data)
-{
-  LCDWriteN(wPreamble, &data, 1);
-}
-
-//-----------------------------------------------------------
-//Host controller function 3---Write Data to host data Bus
-//-----------------------------------------------------------
-void LCDWriteData(uint16_t usData)
-{
-  //Set Preamble for Write Data
-  uint16_t wPreamble	= 0x0000;
-  LCDWrite(wPreamble, usData);
-}
-
-void LCDWriteNData(uint16_t *data, uint32_t count)
-{
-  uint16_t wPreamble = 0x0000;
-  LCDWriteN(wPreamble, data, count);
-}
-
-//-----------------------------------------------------------
-//  Read Burst N words Data
-//-----------------------------------------------------------
-void LCDReadNData(uint16_t* pwBuf, uint32_t ulSizeWordCnt)
-{
-  uint32_t i;
-
-  uint16_t wPreamble = 0x1000;
-
-  openBus();
-  transfer(wPreamble);
-  waitForBus();
-  transfer(0x00); //dummy-value
-  waitForBus();
-  for(i=0;i<ulSizeWordCnt;i++)
-    {
-      pwBuf[i] = transfer(0x00);
-    }
-  closeBus();
-}
-
-//-----------------------------------------------------------
-//Host controller function 4---Read Data from host data Bus
-//-----------------------------------------------------------
-uint16_t LCDReadData()
-{
-  uint16_t wRData = 0x00;
-  LCDReadNData(&wRData, 1);
-  return wRData;
-}
-//-----------------------------------------------------------
-//Host controller function 2---Write command code to host data Bus
-//-----------------------------------------------------------
-void LCDWriteCmdCode(uint16_t usCmdCode)
-{
-  //Set Preamble for Write Command
-  uint16_t wPreamble = 0x6000;
-  LCDWrite(wPreamble, usCmdCode);
-}
-
-//-----------------------------------------------------------
-//Host controller function 5---Write command to host data Bus with aruments
-//-----------------------------------------------------------
-void LCDSendCmdArg(uint16_t usCmdCode,uint16_t* pArg, uint16_t usNumArg)
-{
-  //Send Cmd code
-  LCDWriteCmdCode(usCmdCode);
-  //Send Data
-  for(uint16_t i = 0; i < usNumArg; i++)
-  {
-    LCDWriteData(pArg[i]);
-  }
-}
 
 //-----------------------------------------------------------
 //Host Cmd 1---SYS_RUN
 //-----------------------------------------------------------
 void IT8951SystemRun()
 {
-    LCDWriteCmdCode(IT8951_TCON_SYS_RUN);
+    writeCmd(IT8951_TCON_SYS_RUN);
 }
 
 //-----------------------------------------------------------
@@ -106,7 +21,7 @@ void IT8951SystemRun()
 //-----------------------------------------------------------
 void IT8951StandBy()
 {
-    LCDWriteCmdCode(IT8951_TCON_STANDBY);
+    writeCmd(IT8951_TCON_STANDBY);
 }
 
 //-----------------------------------------------------------
@@ -114,7 +29,7 @@ void IT8951StandBy()
 //-----------------------------------------------------------
 void IT8951Sleep()
 {
-    LCDWriteCmdCode(IT8951_TCON_SLEEP);
+    writeCmd(IT8951_TCON_SLEEP);
 }
 
 //-----------------------------------------------------------
@@ -125,10 +40,10 @@ uint16_t IT8951ReadReg(uint16_t usRegAddr)
   uint16_t usData;
 
   //Send Cmd and Register Address
-  LCDWriteCmdCode(IT8951_TCON_REG_RD);
-  LCDWriteData(usRegAddr);
+  writeCmd(IT8951_TCON_REG_RD);
+  writeData(usRegAddr);
   //Read data from Host Data bus
-  usData = LCDReadData();
+  usData = readData();
   return usData;
 }
 //-----------------------------------------------------------
@@ -137,9 +52,9 @@ uint16_t IT8951ReadReg(uint16_t usRegAddr)
 void IT8951WriteReg(uint16_t usRegAddr,uint16_t usValue)
 {
   //Send Cmd , Register Address and Write Value
-  LCDWriteCmdCode(IT8951_TCON_REG_WR);
-  LCDWriteData(usRegAddr);
-  LCDWriteData(usValue);
+  writeCmd(IT8951_TCON_REG_WR);
+  writeData(usRegAddr);
+  writeData(usValue);
 }
 
 //-----------------------------------------------------------
@@ -154,14 +69,14 @@ void IT8951MemBurstReadTrigger(uint32_t ulMemAddr , uint32_t ulReadSize)
     usArg[2] = (uint16_t)(ulReadSize & 0x0000FFFF); //Cnt[15:0]
     usArg[3] = (uint16_t)( (ulReadSize >> 16) & 0x0000FFFF ); //Cnt[25:16]
     //Send Cmd and Arg
-    LCDSendCmdArg(IT8951_TCON_MEM_BST_RD_T , usArg , 4);
+    writeCmdArg(IT8951_TCON_MEM_BST_RD_T , usArg , 4);
 }
 //-----------------------------------------------------------
 //Host Cmd 7---MEM_BST_RD_S
 //-----------------------------------------------------------
 void IT8951MemBurstReadStart()
 {
-    LCDWriteCmdCode(IT8951_TCON_MEM_BST_RD_S);
+    writeCmd(IT8951_TCON_MEM_BST_RD_S);
 }
 //-----------------------------------------------------------
 //Host Cmd 8---MEM_BST_WR
@@ -175,33 +90,33 @@ void IT8951MemBurstWrite(uint32_t ulMemAddr , uint32_t ulWriteSize)
     usArg[2] = (uint16_t)(ulWriteSize & 0x0000FFFF); //Cnt[15:0]
     usArg[3] = (uint16_t)( (ulWriteSize >> 16) & 0x0000FFFF ); //Cnt[25:16]
     //Send Cmd and Arg
-    LCDSendCmdArg(IT8951_TCON_MEM_BST_WR , usArg , 4);
+    writeCmdArg(IT8951_TCON_MEM_BST_WR , usArg , 4);
 }
 //-----------------------------------------------------------
 //Host Cmd 9---MEM_BST_END
 //-----------------------------------------------------------
 void IT8951MemBurstEnd(void)
 {
-    LCDWriteCmdCode(IT8951_TCON_MEM_BST_END);
+    writeCmd(IT8951_TCON_MEM_BST_END);
 }
 
 uint16_t IT8951GetVCOM(void)
 {
   uint16_t vcom;
 
-  LCDWriteCmdCode(USDEF_I80_CMD_VCOM);
-  LCDWriteData(0);
+  writeCmd(USDEF_I80_CMD_VCOM);
+  writeData(0);
   //Read data from Host Data bus
-  vcom = LCDReadData();
+  vcom = readData();
   return vcom;
 }
 
 void IT8951SetVCOM(uint16_t vcom)
 {
-  LCDWriteCmdCode(USDEF_I80_CMD_VCOM);
-  LCDWriteData(1);
+  writeCmd(USDEF_I80_CMD_VCOM);
+  writeData(1);
   //Read data from Host Data bus
-  LCDWriteData(vcom);
+  writeData(vcom);
 }
 
 //-----------------------------------------------------------
@@ -230,7 +145,7 @@ void IT8951MemBurstWriteProc(uint32_t ulMemAddr , uint32_t ulWriteSize, uint16_t
     //Burst Write Data
     for(uint32_t i=0;i<ulWriteSize;i++)
     {
-        LCDWriteData(pSrcBuf[i]);
+        writeData(pSrcBuf[i]);
     }
 
     //Send Burst End Cmd
@@ -261,7 +176,7 @@ void IT8951MemBurstReadProc(uint32_t ulMemAddr , uint32_t ulReadSize, uint16_t* 
     IT8951MemBurstReadStart();
 
     //Burst Read Request for SPI interface only
-    LCDReadNData(pDestBuf, ulReadSize);
+    readDataN(pDestBuf, ulReadSize);
 
     //Send Burst End Cmd
     IT8951MemBurstEnd(); //the same with IT8951MemBurstEnd()
@@ -277,9 +192,9 @@ void IT8951LoadImgStart(Image* image)
       |(image->bpp << 4)
       |(image->rot);
     //Send Cmd
-    LCDWriteCmdCode(IT8951_TCON_LD_IMG);
+    writeCmd(IT8951_TCON_LD_IMG);
     //Send Arg
-    LCDWriteData(usArg);
+    writeData(usArg);
 }
 //-----------------------------------------------------------
 //Host Cmd 11---LD_IMG_AREA
@@ -296,14 +211,14 @@ void IT8951LoadImgAreaStart(Image* image ,Area* area)
     usArg[3] = area->width;
     usArg[4] = area->height;
     //Send Cmd and Args
-    LCDSendCmdArg(IT8951_TCON_LD_IMG_AREA , usArg , 5);
+    writeCmdArg(IT8951_TCON_LD_IMG_AREA , usArg , 5);
 }
 //-----------------------------------------------------------
 //Host Cmd 12---LD_IMG_END
 //-----------------------------------------------------------
 void IT8951LoadImgEnd(void)
 {
-    LCDWriteCmdCode(IT8951_TCON_LD_IMG_END);
+    writeCmd(IT8951_TCON_LD_IMG_END);
 }
 
 void printScreenInfo(I80DevInfo info)
@@ -330,12 +245,12 @@ I80DevInfo getDeviceInfo()
   I80DevInfo info;
 
   //Send I80 CMD
-  LCDWriteCmdCode(USDEF_I80_CMD_GET_DEV_INFO);
+  writeCmd(USDEF_I80_CMD_GET_DEV_INFO);
 
   //Burst Read Request for SPI interface only
   //size/2 because we always read 2 bytes
   //Polling HRDY for each words(2-bytes) if possible
-  LCDReadNData((uint16_t *) &rawInfo, sizeof(rawInfo)/2);
+  readDataN((uint16_t *) &rawInfo, sizeof(rawInfo)/2);
 
   //Tranfer rawInfo into final info struct
   info.width = rawInfo.width;
@@ -393,7 +308,7 @@ void IT8951HostAreaPackedPixelWrite(Image* image, Area* area)
         uint16_t value = image->sourceBuffer[pos+1];
         value = value << 8;
         value |= image->sourceBuffer[pos];
-        LCDWriteData(value);
+        writeData(value);
       }
   }
   //Send Load Img End Command
@@ -406,13 +321,13 @@ void IT8951HostAreaPackedPixelWrite(Image* image, Area* area)
 void IT8951DisplayArea(Area area, uint16_t usDpyMode)
 {
   //Send I80 Display Command (User defined command of IT8951)
-  LCDWriteCmdCode(USDEF_I80_CMD_DPY_AREA); //0x0034
+  writeCmd(USDEF_I80_CMD_DPY_AREA); //0x0034
   //Write arguments
-  LCDWriteData(area.x);
-  LCDWriteData(area.y);
-  LCDWriteData(area.width);
-  LCDWriteData(area.height);
-  LCDWriteData(usDpyMode);
+  writeData(area.x);
+  writeData(area.y);
+  writeData(area.width);
+  writeData(area.height);
+  writeData(usDpyMode);
 }
 
 //Display Area with bitmap on EPD
@@ -450,16 +365,16 @@ void IT8951DisplayArea1bpp(Area area, uint16_t usDpyMode, uint8_t ucBGGrayVal, u
 void IT8951DisplayAreaBuf(Area area, uint16_t usDpyMode, uint32_t ulDpyBufAddr)
 {
     //Send I80 Display Command (User defined command of IT8951)
-    LCDWriteCmdCode(USDEF_I80_CMD_DPY_BUF_AREA); //0x0037
+    writeCmd(USDEF_I80_CMD_DPY_BUF_AREA); //0x0037
 
     //Write arguments
-    LCDWriteData(area.x);
-    LCDWriteData(area.y);
-    LCDWriteData(area.width);
-    LCDWriteData(area.height);
-    LCDWriteData(usDpyMode);
-    LCDWriteData((uint16_t)ulDpyBufAddr);       //Display Buffer Base address[15:0]
-    LCDWriteData((uint16_t)(ulDpyBufAddr>>16)); //Display Buffer Base address[26:16]
+    writeData(area.x);
+    writeData(area.y);
+    writeData(area.width);
+    writeData(area.height);
+    writeData(usDpyMode);
+    writeData((uint16_t)ulDpyBufAddr);       //Display Buffer Base address[15:0]
+    writeData((uint16_t)(ulDpyBufAddr>>16)); //Display Buffer Base address[26:16]
 }
 
 //-----------------------------------------------------------

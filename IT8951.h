@@ -141,7 +141,6 @@ void IT8951_BMP_Example(uint32_t x, uint32_t y,char *path);
 
 uint16_t IT8951ReadReg(uint16_t usRegAddr);
 void IT8951SetImgBufBaseAddr(uint8_t *ulImgBufAddr);
-void LCDWaitForReady(void);
 void GetIT8951SystemInfo(void* pBuf);
 void gpio_i80_16b_cmd_out(uint16_t usCmd);
 void GPIO_Configuration_Out(void);
