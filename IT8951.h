@@ -9,41 +9,56 @@
 #include <string.h>
 #include "miniGUI.h"
 
-#define CS        8
-#define HRDY          24
-#define RESET           17
-#define VCOM			1500 //e.g. -1.53 = 1530 = 0x5FA
+#define CS 8
+#define HRDY 24
+#define RESET 17
+#define VCOM 1500 //e.g. -1.53 = 1530 = 0x5FA
+
+typedef enum
+{
+ ROTATE_0 = 0,
+ ROTATE_90 = 1,
+ ROTATE_180 = 2,
+ ROTATE_270 = 3,
+} rotation;
+
+typedef enum
+{
+ bpp2 = 0,
+ bpp3 = 1,
+ bpp4 = 2,
+ bpp8 = 3,
+} bpp;
 
 //prototype of structure
 //structure prototype 1
 typedef struct IT8951LdImgInfo
 {
-    uint16_t usEndianType; //little or Big Endian
-    uint16_t usPixelFormat; //bpp
-    uint16_t usRotate; //Rotate mode
-    uint32_t ulStartFBAddr; //Start address of source Frame buffer
-    uint32_t ulImgBufBaseAddr;//Base address of target image buffer
+    bool bigEndian; //little or Big Endian
+    bpp bpp; //bpp
+    rotation rot; //Rotate mode
+    uint8_t *sourceBuffer; //Start address of source Frame buffer
+    uint8_t *targetBuffer;//Base address of target image buffer
 
-}IT8951LdImgInfo;
+} Image;
 
 //structure prototype 2
 typedef struct IT8951AreaImgInfo
 {
-    uint16_t usX;
-    uint16_t usY;
-    uint16_t usWidth;
-    uint16_t usHeight;
-}IT8951AreaImgInfo;
+    uint16_t x;
+    uint16_t y;
+    uint16_t width;
+    uint16_t height;
+} Area;
 
-typedef struct
+typedef struct IT8951DevInfo
 {
-    uint16_t usPanelW;
-    uint16_t usPanelH;
-    uint16_t usImgBufAddrL;
-    uint16_t usImgBufAddrH;
-    uint16_t usFWVersion[8];  //16 Bytes String
-    uint16_t usLUTVersion[8];   //16 Bytes String
-}IT8951DevInfo;
+    uint16_t width;
+    uint16_t height;
+    uint8_t *bufferAddr;
+    char FWVersion[16];  //16 Bytes String
+    char LUTVersion[16];   //16 Bytes String
+} I80DevInfo;
 
 //Built in I80 Command Code
 #define IT8951_TCON_SYS_RUN      0x0001
@@ -68,18 +83,6 @@ typedef struct
 //Panel
 #define IT8951_PANEL_WIDTH   1024 //it Get Device information
 #define IT8951_PANEL_HEIGHT   758
-
-//Rotate mode
-#define IT8951_ROTATE_0     0
-#define IT8951_ROTATE_90    1
-#define IT8951_ROTATE_180   2
-#define IT8951_ROTATE_270   3
-
-//Pixel mode , BPP - Bit per Pixel
-#define IT8951_2BPP   0
-#define IT8951_3BPP   1
-#define IT8951_4BPP   2
-#define IT8951_8BPP   3
 
 //Waveform Mode
 #define IT8951_MODE_0   0
@@ -137,7 +140,7 @@ void example3(void);
 void IT8951_BMP_Example(uint32_t x, uint32_t y,char *path);
 
 uint16_t IT8951ReadReg(uint16_t usRegAddr);
-void IT8951SetImgBufBaseAddr(uint32_t ulImgBufAddr);
+void IT8951SetImgBufBaseAddr(uint8_t *ulImgBufAddr);
 void LCDWaitForReady(void);
 void GetIT8951SystemInfo(void* pBuf);
 void gpio_i80_16b_cmd_out(uint16_t usCmd);

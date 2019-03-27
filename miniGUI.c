@@ -2,23 +2,24 @@
 #include "miniGUI.h"
 #include "AsciiLib.h"
 
-extern IT8951DevInfo gstI80DevInfo;
+extern I80DevInfo devInfo;
 extern uint8_t* gpFrameBuf; //Host Source Frame buffer
+extern uint32_t frameBufSize;
 
 void EPD_Clear(uint8_t Color)
 {
-  memset(gpFrameBuf, Color, gstI80DevInfo.usPanelW * gstI80DevInfo.usPanelH);
+  memset(gpFrameBuf, Color, frameBufSize);
 }
 
 void EPD_DrawPixel(uint16_t x0, uint16_t y0, uint8_t color)
 {
-  if(x0 < 0 || x0 >= gstI80DevInfo.usPanelW || y0 < 0 || y0 >= gstI80DevInfo.usPanelH)
+  if(x0 < 0 || x0 >= devInfo.width || y0 < 0 || y0 >= devInfo.height)
     return ;
 
   /*
   œ‘¥Ê¥¶¿Ì
   */
-  gpFrameBuf[y0*gstI80DevInfo.usPanelW + x0] = color;
+  gpFrameBuf[y0*devInfo.width + x0] = color;
 }
 
 void EPD_DrawLine(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2,uint8_t color)
@@ -264,11 +265,11 @@ void EPD_Text(uint16_t Xpos,uint16_t Ypos,uint8_t *str,uint8_t Color,uint8_t bkC
   {
     TempChar = *str++;
     EPD_PutChar(Xpos, Ypos, TempChar, Color, bkColor);
-    if(Xpos < gstI80DevInfo.usPanelW - 8)
+    if(Xpos < devInfo.width - 8)
     {
       Xpos += 8;
     }
-    else if (Ypos < gstI80DevInfo.usPanelH - 16)
+    else if (Ypos < devInfo.height - 16)
     {
       Xpos = 0;
       Ypos += 16;

@@ -5,16 +5,14 @@ let init addr = Unix.open_connection addr
 let rec worker conn commandlist =
   match commandlist with
   | [] ->
-    (match act conn Heartbeat with
+    (match act conn Cancel with
      | res ->
-       print_string "Alive: ";
-       response_to_string res |> print_endline
-    );
-    Unix.sleep 1;
-    worker conn []
+       print_string "Exit: ";
+       response_to_string res |> print_endline)
   | command::xs ->
     request_to_string command |> fun s -> s ^ ": " |> print_string;
     act conn command |> response_to_string |> print_endline;
+    Unix.sleep 1;
     worker conn xs
 
 
