@@ -10,7 +10,7 @@ let vv = void @-> returning void
 
 type state = {conn : connection; initialised : bool;}
 
-let ready = funer "LCDWaitForReady" (void @-> returning bool)
+let ready () = funer "waitForBus" vv ()
 
 let init () =
   let init () = funer "init" (void @-> returning bool) () in
