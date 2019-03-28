@@ -1,4 +1,15 @@
 #include "bcm.h"
+#include <stdbool.h>
+
+bool initIT()
+{
+  return initBCM();
+}
+
+void freeIT()
+{
+  freeBCM();
+}
 
 void writeN(uint16_t preamble, uint16_t* data, uint32_t count)
 {
@@ -29,7 +40,7 @@ void writeData(uint16_t data)
 //-----------------------------------------------------------
 //  Read Burst N words Data
 //-----------------------------------------------------------
-void readDataN(uint16_t* pwBuf, uint32_t count)
+void readDataN(uint16_t* buffer, uint32_t count)
 {
   uint16_t preamble = 0x1000;
   openBus();
@@ -39,7 +50,7 @@ void readDataN(uint16_t* pwBuf, uint32_t count)
   waitForBus();
   for(uint32_t i = 0; i < count; i++)
     {
-      pwBuf[i] = transfer(0x00);
+      buffer[i] = transfer(0x00);
     }
   closeBus();
 }
@@ -66,13 +77,13 @@ void writeCmd(uint16_t cmdCode)
 //-----------------------------------------------------------
 //Host controller function 5---Write command to host data Bus with aruments
 //-----------------------------------------------------------
-void writeCmdArg(uint16_t usCmdCode,uint16_t* pArg, uint16_t usNumArg)
+void writeCmdArg(uint16_t cmdCode,uint16_t* args, uint16_t amount)
 {
   //Send Cmd code
-  writeCmd(usCmdCode);
+  writeCmd(cmdCode);
   //Send Data
-  for(uint16_t i = 0; i < usNumArg; i++)
+  for(uint16_t i = 0; i < amount; i++)
   {
-    writeData(pArg[i]);
+    writeData(args[i]);
   }
 }

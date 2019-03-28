@@ -51,3 +51,9 @@ bool initBCM()
   bcm2835_gpio_write(RESET, HIGH);
   return false;
 }
+
+void freeBCM()
+{
+  bcm2835_spi_end();
+  bcm2835_close();
+}
