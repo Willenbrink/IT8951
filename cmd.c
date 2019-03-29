@@ -5,12 +5,28 @@
 #include "IT.h"
 #include "cmd.h"
 
+static uint16_t readReg(uint16_t regAddr)
+{
+  writeCmd(IT8951_TCON_REG_RD);
+  writeData(regAddr);
+  return readData();
+}
+
+static void writeReg(uint16_t regAddr, uint16_t value)
+{
+  writeCmd(IT8951_TCON_REG_WR);
+  writeData(regAddr);
+  writeData(value);
+}
+
 bool initCmd()
 {
   bool failure = initIT();
 
   //Set to Enable I80 Packed mode
   writeReg(I80CPCR, 0x0001);
+
+  setVCOM(VCOM);
 
   return failure;
 }
@@ -20,34 +36,24 @@ void freeCmd()
   freeIT();
 }
 
+//TODO unused
 void systemRun()
 {
   writeCmd(IT8951_TCON_SYS_RUN);
 }
 
+//TODO unused
 void standBy()
 {
   writeCmd(IT8951_TCON_STANDBY);
 }
 
+//TODO unused
 void initSleep()
 {
   writeCmd(IT8951_TCON_SLEEP);
 }
 
-uint16_t readReg(uint16_t regAddr)
-{
-  writeCmd(IT8951_TCON_REG_RD);
-  writeData(regAddr);
-  return readData();
-}
-
-void writeReg(uint16_t regAddr, uint16_t value)
-{
-  writeCmd(IT8951_TCON_REG_WR);
-  writeData(regAddr);
-  writeData(value);
-}
 
 uint16_t getVCOM()
 {
@@ -63,7 +69,7 @@ void setVCOM(uint16_t vcom)
   writeData(vcom);
 }
 
-void burstReadStart(uint32_t memAddr , uint32_t readAmount)
+static void burstReadStart(uint32_t memAddr , uint32_t readAmount)
 {
   uint16_t args[4];
   //Setting Arguments for Memory Burst Read
@@ -77,7 +83,7 @@ void burstReadStart(uint32_t memAddr , uint32_t readAmount)
   writeCmd(IT8951_TCON_MEM_BST_RD_S);
 }
 
-void burstWrite(uint32_t memAddr , uint32_t writeAmount)
+static void burstWriteStart(uint32_t memAddr , uint32_t writeAmount)
 {
   uint16_t args[4];
   //Setting Arguments for Memory Burst Write
@@ -89,7 +95,7 @@ void burstWrite(uint32_t memAddr , uint32_t writeAmount)
   writeCmdArg(IT8951_TCON_MEM_BST_WR , args , 4);
 }
 
-void burstEnd(void)
+static void burstEnd(void)
 {
   writeCmd(IT8951_TCON_MEM_BST_END);
 }
@@ -115,7 +121,7 @@ void burstEnd(void)
 void burstWriteProc(uint32_t memAddr , uint32_t writeSize, uint16_t* sourceBuffer)
 {
   //Send Burst Write Start Cmd and Args
-  burstWrite(memAddr, writeSize);
+  burstWriteStart(memAddr, writeSize);
 
   //Burst Write Data
   for(uint32_t i = 0; i < writeSize; i++)
@@ -277,7 +283,7 @@ void waitForDisplayReady()
 //-----------------------------------------------------------
 //Display function 2---Load Image Area process
 //-----------------------------------------------------------
-void hostAreaPackedPixelWrite(Image* image, Area* area)
+void loadImage(Image* image, Area* area)
 {
   //Set Image buffer(IT8951) Base address
   //Specify where
@@ -305,8 +311,13 @@ void hostAreaPackedPixelWrite(Image* image, Area* area)
 //-----------------------------------------------------------
 //Display functions 3---Application for Display panel Area
 //-----------------------------------------------------------
-void displayArea(Area area, uint16_t usDpyMode)
+void displayArea(Area area, uint16_t displayMode)
 {
+  //NOTE: this is perhaps used to check whether transmission is finished (and the buffer can be overwritten)
+  //It should then be called before loadImage instead of before displaying
+  //TODO: what does this comment mean exactly?
+  //Check TCon is free ? Wait TCon Ready (optional)
+  waitForDisplayReady();
   //Send I80 Display Command (User defined command of IT8951)
   writeCmd(USDEF_I80_CMD_DPY_AREA); //0x0034
   //Write arguments
@@ -314,7 +325,7 @@ void displayArea(Area area, uint16_t usDpyMode)
   writeData(area.y);
   writeData(area.width);
   writeData(area.height);
-  writeData(usDpyMode);
+  writeData(displayMode);
 }
 
 //Display Area with bitmap on EPD

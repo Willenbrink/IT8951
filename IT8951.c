@@ -29,12 +29,6 @@ bool init()
       return 1;
     }
 
-  if (VCOM != getVCOM())
-    {
-      setVCOM(VCOM);
-      printf("VCOM = -%.02fV\n",(float)getVCOM()/1000);
-    }
-
   return 0;
 }
 
@@ -74,9 +68,6 @@ void example1()
   //Write pixel 0xF0(White) to Frame Buffer
   memset(gpFrameBuf, 0xF0, frameBufSize);
 
-  //Check TCon is free ? Wait TCon Ready (optional)
-  waitForDisplayReady();
-
   //--------------------------------------------------------------------------------------------
   //      initial display - Display white only
   //--------------------------------------------------------------------------------------------
@@ -87,7 +78,7 @@ void example1()
   Area area = getDefaultArea();
 
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &area);//Display function 2
+  loadImage(&image, &area);//Display function 2
   //Display Area ?V (x,y,w,h) with mode 0 for initial White to clear Panel
   displayArea(area, 0);
 
@@ -98,15 +89,13 @@ void example1()
   //or you can create your image pattern here..
   memset(gpFrameBuf, 0xF0, frameBufSize);
 
-  waitForDisplayReady();
-
   //Setting Load image information
   image = getDefaultImage();
   //Set Load Area
   area = getDefaultArea();
 
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &area);//Display function 2
+  loadImage(&image, &area);//Display function 2
   //Display Area ?V (x,y,w,h) with mode 2 for fast gray clear mode - depends on current waveform
   displayArea(area, 2);
 }
@@ -122,29 +111,29 @@ void example2()
   //Preparing buffer to All black (8 bpp image)
   //or you can create your image pattern here..
   memset(gpFrameBuf                 ,  0x00, width * high * 1);
-  memset(gpFrameBuf+width * high * 1,  0x11, width * high * 1);
-  memset(gpFrameBuf+width * high * 2,  0x22, width * high * 1);
-  memset(gpFrameBuf+width * high * 3,  0x33, width * high * 1);
-  memset(gpFrameBuf+width * high * 4,  0x44, width * high * 1);
-  memset(gpFrameBuf+width * high * 5,  0x55, width * high * 1);
-  memset(gpFrameBuf+width * high * 6,  0x66, width * high * 1);
-  memset(gpFrameBuf+width * high * 7,  0x77, width * high * 1);
-  memset(gpFrameBuf+width * high * 8,  0x88, width * high * 1);
-  memset(gpFrameBuf+width * high * 9,  0x99, width * high * 1);
-  memset(gpFrameBuf+width * high * 10, 0xaa, width * high * 1);
-  memset(gpFrameBuf+width * high * 11, 0xbb, width * high * 1);
-  memset(gpFrameBuf+width * high * 12, 0xcc, width * high * 1);
-  memset(gpFrameBuf+width * high * 13, 0xdd, width * high * 1);
-  memset(gpFrameBuf+width * high * 14, 0xee, width * high * 1);
-  memset(gpFrameBuf+width * high * 15, 0xff, frameBufSize - width * high * 15);
-  waitForDisplayReady();
+  memset(gpFrameBuf+width * high * 1,  0x10, width * high * 1);
+  memset(gpFrameBuf+width * high * 2,  0x20, width * high * 1);
+  memset(gpFrameBuf+width * high * 3,  0x30, width * high * 1);
+  memset(gpFrameBuf+width * high * 4,  0x40, width * high * 1);
+  memset(gpFrameBuf+width * high * 5,  0x50, width * high * 1);
+  memset(gpFrameBuf+width * high * 6,  0x60, width * high * 1);
+  memset(gpFrameBuf+width * high * 7,  0x70, width * high * 1);
+  memset(gpFrameBuf+width * high * 8,  0x80, width * high * 1);
+  memset(gpFrameBuf+width * high * 9,  0x90, width * high * 1);
+  memset(gpFrameBuf+width * high * 10, 0xa0, width * high * 1);
+  memset(gpFrameBuf+width * high * 11, 0xb0, width * high * 1);
+  memset(gpFrameBuf+width * high * 12, 0xc0, width * high * 1);
+  memset(gpFrameBuf+width * high * 13, 0xd0, width * high * 1);
+  memset(gpFrameBuf+width * high * 14, 0xe0, width * high * 1);
+  memset(gpFrameBuf+width * high * 15, 0xf0, frameBufSize - width * high * 15);
   //Setting Load image information
   Image image = getDefaultImage();
   //Set Load Area
   Area area = getDefaultArea();
+  image.rot = ROTATE_90;
 
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &area);//Display function 2
+  loadImage(&image, &area);//Display function 2
   //Display Area ?V (x,y,w,h) with mode 2 for fast gray clear mode - depends on current waveform
   displayArea(area, 2);
 }
@@ -194,15 +183,13 @@ void example3()
 
   //EPD_DrawMatrix(0,0,550,412,bmp01);
 
-  waitForDisplayReady();
-
   //Setting Load image information
   Image image = getDefaultImage();
   //Set Load Area
   Area area = getDefaultArea();
 
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &area);//Display function 2
+  loadImage(&image, &area);//Display function 2
 
   displayArea(area, 2);
 }
@@ -214,15 +201,13 @@ void IT8951_BMP_Example(uint32_t x, uint32_t y,char *path)
   //ÏÔÊ¾Í¼Ïñ
   Show_bmp(x,y,path);
 
-  waitForDisplayReady();
-
   //Setting Load image information
   Image image = getDefaultImage();
   //Set Load Area
   Area area = getDefaultArea();
 
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &area);//Display function 2
+  loadImage(&image, &area);//Display function 2
   //Display Area ?V (x,y,w,h) with mode 2 for fast gray clear mode - depends on current waveform
   displayArea(area, 2);
 }
@@ -251,7 +236,7 @@ void Load1bppImage(uint8_t* p1bppImgBuf, Area area)
 
   printf("IT8951HostAreaPackedPixelWrite [wait]\n\r");
   //Load Image from Host to IT8951 Image Buffer
-  hostAreaPackedPixelWrite(&image, &areaNew);//Display function 2
+  loadImage(&image, &areaNew);//Display function 2
 }
 
 //-----------------------------------------------------------
@@ -263,9 +248,6 @@ void Display1bppExample()
   //Write pixel 0x00(Black) to Frame Buffer
   //or you can create your image pattern here..
   memset(gpFrameBuf, 0x00, frameBufSize/8);//Host Frame Buffer(Source)
-
-  //Check TCon is free ? Wait TCon Ready (optional)
-  waitForDisplayReady();
 
   //Load Image and Display
   //Set Load Area
@@ -285,9 +267,6 @@ void Display1bppExample2()
   //Write pixel 0x00(Black) to Frame Buffer
   //or you can create your image pattern here..
   memset(gpFrameBuf, 0xff, frameBufSize/8);//Host Frame Buffer(Source)
-
-  //Check TCon is free ? Wait TCon Ready (optional)
-  waitForDisplayReady();
 
   //Load Image and Display
   //Set Load Area

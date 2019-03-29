@@ -3,8 +3,8 @@
 
 /*
  * Third level of abstraction: Wrap commands to enable sending complex instructions to the controller
- * E.g. Writing/Reading a large part of memory in burst-mode or displaying a image, which was previously transmitted.
- * Furthermore it is now possible to write to registers
+ * E.g. loading an image and displaying it.
+ * TODO: Implement multiple buffers to improve framerate (Display one buffer while already drawing in another buffer)
  */
 
 typedef enum
@@ -60,23 +60,13 @@ void freeCmd();
 void systemRun();
 void standBy();
 void initSleep();
-uint16_t readReg(uint16_t regAddr);
-void writeReg(uint16_t regAddr, uint16_t value);
 uint16_t getVCOM();
 void setVCOM(uint16_t vcom);
-void burstReadStart(uint32_t memAddr , uint32_t readAmount);
-void burstWrite(uint32_t memAddr , uint32_t writeAmount);
-void burstEnd(void);
-void burstWriteProc(uint32_t memAddr , uint32_t writeSize, uint16_t* sourceBuffer);
-void burstReadProc(uint32_t memAddr , uint32_t readSize, uint16_t* destBuffer);
-void loadImgStart(Image* image);
-void loadImgAreaStart(Image* image, Area* area);
-void loadImgEnd(void);
 void printDeviceInfo(I80DevInfo info);
 I80DevInfo getDeviceInfo();
-void setImgBufBaseAddr(uint8_t *imgBufAddr);
-void waitForDisplayReady();
-void hostAreaPackedPixelWrite(Image* image, Area* area);
+void loadImage(Image* image, Area* area);
 void displayArea(Area area, uint16_t usDpyMode);
+
+//TODO unused
 void displayArea1bpp(Area area, uint16_t usDpyMode, uint8_t ucBGGrayVal, uint8_t ucFGGrayVal);
 void displayAreaBuf(Area area, uint16_t usDpyMode, uint32_t ulDpyBufAddr);
