@@ -16,12 +16,12 @@ typedef enum
 } rotation;
 
 typedef enum
-  {
-   bpp2 = 0,
-   bpp3 = 1,
-   bpp4 = 2,
-   bpp8 = 3,
-  } bpp;
+{
+ bpp2 = 0,
+ bpp3 = 1,
+ bpp4 = 2,
+ bpp8 = 3,
+} bpp;
 
 //prototype of structure
 //structure prototype 1
