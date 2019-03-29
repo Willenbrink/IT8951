@@ -1,43 +1,23 @@
 open Unix
 open Protocol
-open Ctypes
-open Foreign
-
-let libIT = Dl.dlopen ~flags:[Dl.RTLD_LAZY] ~filename:("/home/pi/IT8951/IT8951")
-
-let funer name params = foreign ~from:libIT ~release_runtime_lock:false name params
-let vv = void @-> returning void
+open Interface
 
 type state = {conn : connection; initialised : bool;}
-
-let ready () = funer "waitForBus" vv ()
-
-let init () =
-  let init () = funer "init" (void @-> returning bool) () in
-  if init () then Fail else Success
-
-let exam1 () =
-  let f = funer "example1" vv in
-  f ()
-
-let exam2 () =
-  let f = funer "example2" vv in
-  f ()
-
-let exam3 () =
-  let f = funer "example3" vv in
-  f ()
-
-let cancel () = funer "cancel" (void @-> returning void) ()
 
 let handle_input ({conn; initialised} as state) request =
   try match request with
     | Heartbeat -> Ack
-    | Init -> if not initialised then init () else Success
+    | Init -> if not initialised then init () else Fail
+    | Clear -> clear (); Success
+    | Plot (x,y) -> plot x y; Success
+    | Display -> display (); Success
+    | Color_point (x,y) -> Color (point_color x y)
+    | Line (x1,y1,x2,y2) -> set_color foreground; plot x1 y1; plot x2 y2; Success
+    | Color_set c -> set_color c; Success
     | Exam1 -> exam1 (); Success
     | Exam2 -> exam2 (); Success
     | Exam3 -> exam3 (); Success
-    | Cancel -> cancel (); Success
+    | Free -> free (); Success
     | _ -> Ack
   with
   | Dl.DL_error str -> Exc str
@@ -51,11 +31,7 @@ let rec worker ({conn; _} as state) =
   in
   worker state
 
-
-let handle ic oc =
-  (*Sys.(set_signal sigsegv (Signal_handle(fun _ -> send oc (Exc "segfault"))));
-  let () = Unix.descr_of_in_channel ic |> Unix.set_nonblock in*)
-  worker { conn = {ic; oc}; initialised = false}
+let handle ic oc = worker { conn = {ic; oc}; initialised = false}
 
 let rec waitpid_non_intr pid =
   try waitpid [] pid

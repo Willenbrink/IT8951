@@ -67,6 +67,9 @@ I80DevInfo getDeviceInfo();
 void loadImage(Image* image, Area* area);
 void displayArea(Area area, uint16_t usDpyMode);
 
+
+
+
 //TODO unused
 void displayArea1bpp(Area area, uint16_t usDpyMode, uint8_t ucBGGrayVal, uint8_t ucFGGrayVal);
 void displayAreaBuf(Area area, uint16_t usDpyMode, uint32_t ulDpyBufAddr);

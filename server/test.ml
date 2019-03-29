@@ -2,8 +2,6 @@ open Protocol
 
 let arguments =
   [
-    Init;
-    Exam2;
   ]
 
 let main () =

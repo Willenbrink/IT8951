@@ -130,7 +130,6 @@ void example2()
   Image image = getDefaultImage();
   //Set Load Area
   Area area = getDefaultArea();
-  image.rot = ROTATE_90;
 
   //Load Image from Host to IT8951 Image Buffer
   loadImage(&image, &area);//Display function 2
@@ -146,7 +145,7 @@ void example3()
 
   //memset(gpFrameBuf, 0xff, gstI80DevInfo.usPanelW * gstI80DevInfo.usPanelH);
   uint16_t width = devInfo.width;
-  uint16_t high = devInfo.height; //TODO no /16 here?
+  uint16_t high = devInfo.height;
 
   EPD_Clear(0xff);
 

@@ -12,6 +12,7 @@ color drawingColor;
 
 bool initGraphics()
 {
+  bool ret = initCmd();
   devInfo = getDeviceInfo();
   bSize = devInfo.width * devInfo.height;
   buffer = (color *) calloc(1, bSize);
@@ -19,12 +20,33 @@ bool initGraphics()
   posX = 0;
   posY = 0;
 
-  return initCmd();
+  return ret;
 }
 
 void freeGraphics()
 {
   freeCmd();
+}
+
+void display()
+{
+  Image image = {
+                .sourceBuffer = buffer,
+                .targetBuffer = devInfo.bufferAddr,
+                .bigEndian = false,
+                .bpp = bpp8,//we use 8bpp because IT8951 dose not support 1bpp mode for load image?Aso we use Load 8bpp mode ,but the transfer size needs to be reduced to Size/8
+                .rot = ROTATE_0,
+  };
+
+  Area area = {
+                  .x = 0,
+                  .y = 0,
+                  .width = devInfo.width,
+                  .height = devInfo.height,
+  };
+
+  loadImage(&image, &area);
+  displayArea(area, 2);
 }
 
 color rgb(int r, int g, int b)
