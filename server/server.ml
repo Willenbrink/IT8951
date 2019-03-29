@@ -6,19 +6,16 @@ type state = {conn : connection; initialised : bool;}
 
 let handle_input ({conn; initialised} as state) request =
   try match request with
-    | Heartbeat -> Ack
-    | Init -> if not initialised then init () else Fail
-    | Clear -> clear (); Success
-    | Plot (x,y) -> plot x y; Success
-    | Display -> display (); Success
-    | Color_point (x,y) -> Color (point_color x y)
-    | Line (x1,y1,x2,y2) -> set_color foreground; plot x1 y1; plot x2 y2; Success
-    | Color_set c -> set_color c; Success
-    | Exam1 -> exam1 (); Success
-    | Exam2 -> exam2 (); Success
-    | Exam3 -> exam3 (); Success
+    | Init -> if initialised || init () then Fail else Success
     | Free -> free (); Success
-    | _ -> Ack
+    | Heartbeat -> Ack
+    | Clear -> clear (); Success
+    | Display -> display (); Success
+    | Point p -> plot p; Success
+    | Color_at_point p -> Color (point_color p)
+    | Line (p1,p2) -> set_color foreground; draw_line p1 p2; Success
+    | Color_set c -> set_color c; Success
+    | _ -> Fail
   with
   | Dl.DL_error str -> Exc str
   | _ -> Fail

@@ -1,17 +1,16 @@
+open Interface
+
 type request =
   | Init
   | Free
+  | Heartbeat
   | Clear
   | Display
-  | Plot of int * int
-  | Color_point of int * int
-  | Line of int * int * int * int
+  | Point of point
+  | Color_at_point of point
+  | Line of point * point
   | Color_set of int
   | Image
-  | Heartbeat
-  | Exam1
-  | Exam2
-  | Exam3
 
 type response =
   | Success
