@@ -26,10 +26,10 @@ let load_image t = funer "loadImage" (ptr void @-> returning void) t
 
 let display () = funer "display" vv ()
 
-let plot (x,y) = funer "plot" (int @-> int @-> returning void) x y
+let plot (x,y) () = funer "plot" (int @-> int @-> returning void) x y
 
 let point_color (x,y) = funer "pointColor" (int @-> int @-> returning int) x y
 
-let draw_line (x,y) (x2,y2) = funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x y x2 y2
+let draw_line (x,y) (x2,y2) () = funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x y x2 y2
 
 let set_color c = funer "setColor" (int @-> returning void) c

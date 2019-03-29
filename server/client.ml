@@ -1,10 +1,11 @@
+open Interface
 open Protocol
 
 let init addr = Unix.open_connection addr
 
 let random int = Random.int int
 
-let line () = Line((random 800, random 600), (random 800, random 600))
+let line () = plot (random 800, random 600)
 
 let rec init_aux i n f =
   if i >= n then []
@@ -19,12 +20,12 @@ let linit len f =
 let rec worker conn commandlist =
   match commandlist with
   | [] ->
-    let args = linit 10 (fun _ -> line ()) in
-    worker conn (Display::args)
+    let args = linit 1000 (fun _ -> line ()) in
+    worker conn (display::args)
   | command::xs ->
-    request_to_string command |> fun s -> s ^ ": " |> print_string;
-    act conn command |> response_to_string |> print_endline;
-    worker conn xs
+    match act conn command with
+    | None -> worker conn (command::xs)
+    | Some x -> worker conn xs
 
 let start commandlist =
   let ic,oc = init (Unix.ADDR_INET(Unix.inet_addr_any, 1234)) in
@@ -32,12 +33,10 @@ let start commandlist =
   (*let () = Unix.descr_of_in_channel ic |> Unix.set_nonblock in*)
 
   try
-    act conn Init |> ignore;
-    act conn Clear |> ignore;
+    act conn Interface.init |> ignore;
+    act conn clear |> ignore;
     worker conn commandlist;
-    (match act conn Free with
-     | res ->
-       print_string "Exit: ";
-       response_to_string res |> print_endline)
+    (match act conn free with
+     | res -> ())
 
   with exc -> Printf.fprintf stderr "Exception! "; raise exc

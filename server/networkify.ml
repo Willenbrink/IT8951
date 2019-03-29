@@ -1,34 +1,9 @@
 open Unix
 open Protocol
-open Interface
 
-type state = {conn : connection; initialised : bool;}
-
-let handle_input ({conn; initialised} as state) request =
-  try match request with
-    | Init -> if initialised || init () then Fail else Success
-    | Free -> free (); Success
-    | Heartbeat -> Ack
-    | Clear -> clear (); Success
-    | Display -> display (); Success
-    | Point p -> plot p; Success
-    | Color_at_point p -> Color (point_color p)
-    | Line (p1,p2) -> set_color foreground; draw_line p1 p2; Success
-    | Color_set c -> set_color c; Success
-    | _ -> Fail
-  with
-  | Dl.DL_error str -> Exc str
-  | _ -> Fail
-
-let rec worker ({conn; _} as state) =
-  let state = match react conn (handle_input state) with
-    | Init, Success -> {conn; initialised = true}
-    | Init, Fail -> {conn; initialised = false}
-    | _ -> state
-  in
-  worker state
-
-let handle ic oc = worker { conn = {ic; oc}; initialised = false}
+let rec handle ic oc =
+  react {ic; oc};
+  handle ic oc
 
 let rec waitpid_non_intr pid =
   try waitpid [] pid
@@ -65,7 +40,6 @@ let establish_server ?(do_fork=true) server_fun sockaddr =
   done
 
 let start
-    ?(f = handle)
     ?(addr = ADDR_INET (inet_addr_any, 1234))
     () =
-  establish_server ~do_fork:false f addr
+  establish_server ~do_fork:false handle addr
