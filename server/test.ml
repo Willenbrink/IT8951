@@ -1,5 +1,3 @@
-open Protocol
-
 let arguments =
   [
   ]
@@ -7,12 +5,12 @@ let arguments =
 let main () =
   if Array.length Sys.argv <> 1 then
     if Sys.argv.(1) = "1" then
-      Networkify.start ()
+      Server.start ()
     else
       Client.start arguments
   else
   match Unix.fork () with
-  | 0 -> Networkify.start ()
+  | 0 -> Server.start ()
   | _ -> Unix.sleep 1; Client.start arguments
 
 ;;main ()

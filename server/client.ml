@@ -1,7 +1,5 @@
-open Interface
+open Ctypes
 open Protocol
-
-let init addr = Unix.open_connection addr
 
 let random int = Random.int int
 
@@ -19,7 +17,7 @@ let linit len f =
   if len < 0 then invalid_arg "List.init" else
     init_aux 0 len f
 
-let rec worker conn commandlist =
+let rec worker img conn commandlist =
   match commandlist with
   | [] ->
     let args =
@@ -27,26 +25,24 @@ let rec worker conn commandlist =
       let (x1,y1),(x2,y2) = p1,p2 in
       Printf.printf "Line: %i,%i - %i,%i\n" x1 y1 x2 y2;
       flush_all ();
-      [draw_line p1 p2; display (p1) (p2); ]
+      [Image (CArray.to_list img , (p1,p2)); Display ((p1,p2), Slow); ]
     in
 
-    worker conn (args)
+    worker img conn (args)
   | command::xs ->
     match act conn command with
-    | None -> worker conn (command::xs)
-    | Some _ -> worker conn xs
+    | Ack | _ -> worker img conn xs
 
 let start commandlist =
-  let ic,oc = init (Unix.ADDR_INET(Unix.inet_addr_any, 1234)) in
+  let ic,oc = Unix.open_connection (Unix.ADDR_INET(Unix.inet_addr_any, 1234)) in
   let conn = {ic; oc} in
   (*let () = Unix.descr_of_in_channel ic |> Unix.set_nonblock in*)
+  let x,y = match act conn Size with
+    | Dim (x,y) -> x,y
+    | _ -> Invalid_argument "Size" |> raise
+  in
+  let img = CArray.make ~initial:0x00 int (x*y) in
 
   try
-    act conn Interface.init |> ignore;
-    act conn clear |> ignore;
-    act conn display_all |> ignore;
-    worker conn commandlist;
-    (match act conn free with
-     | res -> ())
-
-  with exc -> Printf.fprintf stderr "Exception! "; raise exc
+    worker img conn commandlist
+  with exc -> Printf.fprintf stderr "Exception!"; raise exc

@@ -29,17 +29,8 @@ void freeGraphics()
   freeCmd();
 }
 
-void display(int x1, int y1, int x2, int y2)
+Area getArea(int x1, int y1, int x2, int y2)
 {
-  Image image = {
-                 .sourceBuffer = buffer,
-                 .targetBuffer = devInfo.bufferAddr,
-                 .width = devInfo.width,
-                 .height = devInfo.height,
-                 .bigEndian = false,
-                 .bpp = bpp8,//we use 8bpp because IT8951 dose not support 1bpp mode for load image?Aso we use Load 8bpp mode ,but the transfer size needs to be reduced to Size/8
-                 .rot = ROTATE_0,
-  };
   int xl = x1 < x2 ? x1 : x2;
   int yl = y1 < y2 ? y1 : y2;
   int xh = x1 > x2 ? x1 : x2;
@@ -57,14 +48,38 @@ void display(int x1, int y1, int x2, int y2)
                .width = xh - xl,
                .height = yh - yl,
   };
-
-  loadImage(&image, &area);
-  displayArea(area, 2);
+  return area;
 }
 
-void displayAll()
+void loadImg(void *img, int x1, int y1, int x2, int y2)
 {
-  display(0, 0, width(), height());
+  Image image = {
+                 .sourceBuffer = img,
+                 .targetBuffer = devInfo.bufferAddr,
+                 .width = devInfo.width,
+                 .height = devInfo.height,
+                 .bigEndian = false,
+                 .bpp = bpp8,//we use 8bpp because IT8951 dose not support 1bpp mode for load image?Aso we use Load 8bpp mode ,but the transfer size needs to be reduced to Size/8
+                 .rot = ROTATE_0,
+  };
+  Area area = getArea(x1, y1, x2, y2);
+
+  loadImage(&image, &area);
+}
+
+void display(int x1, int y1, int x2, int y2, int mode)
+{
+  Area area = getArea(x1, y1, x2, y2);
+
+  displayArea(area, mode);
+}
+
+void displayBuffer(int x1, int y1, int x2, int y2)
+{
+  Area area = getArea(x1, y1, x2, y2);
+
+  loadImg(buffer, x1, y1, x2, y2);
+  displayArea(area, 2);
 }
 
 color rgb(int r, int g, int b)

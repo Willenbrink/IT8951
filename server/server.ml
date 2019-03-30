@@ -1,9 +1,13 @@
 open Unix
 open Protocol
 
-let rec handle ic oc =
-  react {ic; oc};
-  handle ic oc
+let handle ic oc =
+  let _ = Interface.init () in
+  let rec f () =
+    react {ic; oc} Interface.handle;
+    f ()
+  in
+  f ()
 
 let rec waitpid_non_intr pid =
   try waitpid [] pid
