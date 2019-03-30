@@ -49,7 +49,7 @@ let fill_ellipse x y rx ry = fill_circle x y (rx + ry)
 
 let synchronize () = EPD.display_buffer (0,0) (800, 600)
 
-let clear_graph () = EPD.clear ()
+let clear_graph () = EPD.clear background
 
 let current_point () = !pos_x,!pos_y
 

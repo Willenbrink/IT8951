@@ -1,5 +1,5 @@
 #!/bin/sh
 make;
 sudo killall test.exe;
-dune build server/test.exe &&
-sudo ~/IT8951/_build/default/server/test.exe $@
+dune build frontend/test.exe &&
+sudo ~/IT8951/_build/default/frontend/test.exe $@

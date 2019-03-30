@@ -18,6 +18,8 @@ let bg = 0x00
 let width () = funer "width" (void @-> returning int) ()
 let height () = funer "height" (void @-> returning int) ()
 
+let check (x,y) = x >= 0 && x < width () && y >= 0 && y < height ()
+
 (* Returns true on failure *)
 let init () =
   let init () = funer "initGraphics" (void @-> returning bool) () in
@@ -27,13 +29,13 @@ let free () = funer "freeGraphics" vv ()
 
 let load_image t = funer "loadImage" (ptr void @-> returning void) t
 
-let plot (x,y) = funer "plot" (int @-> int @-> returning void) x y
+let plot (x,y) = if check (x,y) then funer "plot" (int @-> int @-> returning void) x y
 
 let point_color (x,y) = funer "pointColor" (int @-> int @-> returning int) x y
 
 let set_color c = funer "setColor" (int @-> returning void) c
 
-let clear () = funer "clearColor" (int @-> returning void) bg
+let clear c = funer "clearColor" (int @-> returning void) c
 
 let load_image img ((x1,y1),(x2,y2)) = funer "loadImage" (ptr void @-> int @-> int @-> int @-> int @-> returning void) img x1 y1 x2 y2
 
@@ -43,7 +45,7 @@ let display_buffer (x1,y1) (x2,y2) = funer "displayBuffer" (int @-> int @-> int 
 
 let display_all () = funer "display" (int @-> int @-> int @-> int @-> returning void) 0 0 (width () - 1) (height () - 1)
 
-let draw_line (x1,y1) (x2,y2) = funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
+let draw_line (x1,y1) (x2,y2) = if check (x1,y1) && check (x2,y2) then funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
 
 let draw_text ?(fg=fg) ?(bg=bg) (x,y) str = funer "putText" (int @-> int @-> string @-> int @-> int @-> returning void) x y str fg bg
 
