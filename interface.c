@@ -62,8 +62,14 @@ void display(int x1, int y1, int x2, int y2)
   displayArea(area, 2);
 }
 
+void displayAll()
+{
+  display(0, 0, width(), height());
+}
+
 color rgb(int r, int g, int b)
 {
+  //TODO not weighed appropriately?
   return
     ( (r && 0xFF)
     + (g && 0xFF)
@@ -90,7 +96,6 @@ void setColor(color c)
 {
   drawingColor = c;
 }
-
 
 void plot(int x, int y)
 {
