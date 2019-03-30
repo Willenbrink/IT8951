@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cmd.h"
+#include "AsciiLib.h"
 
 typedef uint8_t color;
 
@@ -28,21 +29,33 @@ void freeGraphics()
   freeCmd();
 }
 
-void display()
+void display(int x1, int y1, int x2, int y2)
 {
   Image image = {
-                .sourceBuffer = buffer,
-                .targetBuffer = devInfo.bufferAddr,
-                .bigEndian = false,
-                .bpp = bpp8,//we use 8bpp because IT8951 dose not support 1bpp mode for load image?Aso we use Load 8bpp mode ,but the transfer size needs to be reduced to Size/8
-                .rot = ROTATE_0,
+                 .sourceBuffer = buffer,
+                 .targetBuffer = devInfo.bufferAddr,
+                 .width = devInfo.width,
+                 .height = devInfo.height,
+                 .bigEndian = false,
+                 .bpp = bpp8,//we use 8bpp because IT8951 dose not support 1bpp mode for load image?Aso we use Load 8bpp mode ,but the transfer size needs to be reduced to Size/8
+                 .rot = ROTATE_0,
   };
+  int xl = x1 < x2 ? x1 : x2;
+  int yl = y1 < y2 ? y1 : y2;
+  int xh = x1 > x2 ? x1 : x2;
+  int yh = y1 > y2 ? y1 : y2;
+
+  //TODO leaky abstraction: always draw 2 pixels, therefore display area must be "rounded down/up"
+  xl -= xl % 2;
+  xh += xh % 2;
+  yl -= yl % 2;
+  yh += yh % 2;
 
   Area area = {
-                  .x = 0,
-                  .y = 0,
-                  .width = devInfo.width,
-                  .height = devInfo.height,
+               .x = xl,
+               .y = yl,
+               .width = xh - xl,
+               .height = yh - yl,
   };
 
   loadImage(&image, &area);
@@ -78,6 +91,7 @@ void setColor(color c)
   drawingColor = c;
 }
 
+
 void plot(int x, int y)
 {
   buffer[y * devInfo.width + x] = drawingColor;
@@ -112,8 +126,8 @@ int currentY()
 
 void drawLine(int x, int y, int x2, int y2)
 {
-    int deltax = 0, deltay = 0, xinc1 = 0, xinc2 = 0,
-      yinc1 = 0, yinc2 = 0, den = 0, num = 0, num_add = 0, num_pixels = 0;
+  int deltax = 0, deltay = 0, xinc1 = 0, xinc2 = 0,
+    yinc1 = 0, yinc2 = 0, den = 0, num = 0, num_add = 0, num_pixels = 0;
 
     deltax = abs(x2 - x);        /* The difference between the x's */
     deltay = abs(y2 - y);        /* The difference between the y's */
@@ -245,5 +259,55 @@ void fillCircle(int x, int y, int r)
     current_x++;
   }
   drawCircle(x, y, r);
+}
+
+void putChar(uint16_t x, uint16_t y, char charac, color fg, color bg)
+{
+  char buffer[16], tmp_char;
+  color old = drawingColor;
+  drawingColor = bg;
+  GetASCIICode(buffer, charac);
+  for(uint16_t i = 0; i < 16; i++)
+  {
+    tmp_char = buffer[i];
+    for(uint16_t j = 0; j < 8; j++)
+    {
+      if(((tmp_char >> (7-j)) & 0x01) == 0x01)
+      {
+        drawingColor = fg;
+        plot(x + j, y + i);
+        drawingColor = bg;
+      }
+      else
+      {
+        plot(x + j, y + i);
+      }
+    }
+  }
+  drawingColor = old;
+}
+
+
+void putText(uint16_t x, uint16_t y, char *str, color fg, color bg)
+{
+  while (*str != 0)
+  {
+    //Check bounds and insert linebreaks
+    if(x < devInfo.width - 8)
+    {
+      x += 8;
+    }
+    else if (y < devInfo.height - 16)
+    {
+      x = 0;
+      y += 16;
+    }
+    else
+    {
+      x = 0;
+      y = 0;
+    }
+    putChar(x, y, *(str++), fg, bg);
+  }
 }
 

@@ -190,7 +190,7 @@ void loadImgAreaStart(Image* image, Area* area)
   args[3] = area->width;
   args[4] = area->height;
   //Send Cmd and Args
-  writeCmdArg(IT8951_TCON_LD_IMG_AREA , args , 5);
+  writeCmdArg(IT8951_TCON_LD_IMG_AREA, args, 5);
 }
 //-----------------------------------------------------------
 //Host Cmd 12---LD_IMG_END
@@ -291,12 +291,15 @@ void loadImage(Image* image, Area* area)
   //Send Load Image start Cmd
   //Specify what
   loadImgAreaStart(image, area);
+
   //Host Write Data
   for(uint32_t j = 0; j < area->height; j++)
   {
     for(uint32_t i = 0; i < area->width; i += 2) //pixel are 8bpp but transmission is 2 bytes
     {
-      uint32_t pos = j * area->width + i;
+      uint32_t yOffset = (area->y + j) * image->width;
+      uint32_t xOffset = area->x + i;
+      uint32_t pos = yOffset + xOffset;
       //Write a Word(2-Bytes) for each time
       uint16_t value = image->sourceBuffer[pos+1];
       value = value << 8;

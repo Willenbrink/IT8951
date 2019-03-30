@@ -32,6 +32,7 @@ typedef struct IT8951LdImgInfo
   rotation rot; //Rotate mode
   uint8_t *sourceBuffer; //Start address of source Frame buffer
   uint8_t *targetBuffer;//Base address of target image buffer
+  uint16_t width, height;
 
 } Image;
 
