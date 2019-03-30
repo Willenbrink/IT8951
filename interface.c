@@ -11,23 +11,6 @@ I80DevInfo devInfo;
 int posX, posY;
 color drawingColor;
 
-bool initGraphics()
-{
-  bool ret = initCmd();
-  devInfo = getDeviceInfo();
-  bSize = devInfo.width * devInfo.height;
-  buffer = (color *) calloc(1, bSize);
-
-  posX = 0;
-  posY = 0;
-
-  return ret;
-}
-
-void freeGraphics()
-{
-  freeCmd();
-}
 
 Area getArea(int x1, int y1, int x2, int y2)
 {
@@ -331,3 +314,22 @@ void putText(uint16_t x, uint16_t y, char *str, color fg, color bg)
   }
 }
 
+
+bool initGraphics()
+{
+  bool ret = initCmd();
+  devInfo = getDeviceInfo();
+  bSize = devInfo.width * devInfo.height;
+  buffer = (color *) calloc(1, bSize);
+
+  posX = 0;
+  posY = 0;
+  loadImg(buffer, 0, 0, devInfo.width - 1, devInfo.height - 1);
+
+  return ret;
+}
+
+void freeGraphics()
+{
+  freeCmd();
+}
