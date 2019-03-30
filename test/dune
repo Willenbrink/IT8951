@@ -1,0 +1,7 @@
+(executable
+  (name test)
+  (libraries EPD))
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))

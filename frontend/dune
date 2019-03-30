@@ -1,5 +1,5 @@
-(executable
-  (name test)
+(library
+  (name EPD)
   (libraries unix ctypes ctypes.foreign))
 
 (env
