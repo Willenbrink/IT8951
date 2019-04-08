@@ -1,7 +1,7 @@
 open Ctypes
 open Foreign
 
-let libIT = Dl.dlopen ~flags:[Dl.RTLD_LAZY] ~filename:("/home/pi/IT8951/IT8951")
+let libIT = Dl.dlopen ~flags:[Dl.RTLD_LAZY] ~filename:(Unix.getcwd () ^ "/EPD/IT8951")
 
 let funer name params = foreign ~from:libIT ~release_runtime_lock:false name params
 let vv = void @-> returning void
@@ -12,8 +12,8 @@ type image = int carray
 type mode = White | Unknown | Slow | Medium | Fast
 let mode_to_int = function White -> 0 | Unknown -> 1 | Slow -> 2 | Medium -> 3 | Fast -> 4
 
-let fg = 0xFF
-let bg = 0x00
+let fg = 0x00
+let bg = 0xFF
 
 let width () = funer "width" (void @-> returning int) ()
 let height () = funer "height" (void @-> returning int) ()
@@ -37,13 +37,18 @@ let set_color c = funer "setColor" (int @-> returning void) c
 
 let clear c = funer "clearColor" (int @-> returning void) c
 
+let get_screen () = (0,0),(width () - 1, height () - 1)
+
 let load_image img ((x1,y1),(x2,y2)) = funer "loadImage" (ptr void @-> int @-> int @-> int @-> int @-> returning void) img x1 y1 x2 y2
 
-let display ((x1,y1),(x2,y2)) mode = funer "display" (int @-> int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2 mode
+let display ((x1,y1),(x2,y2)) mode = funer "display" (int @-> int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2 (mode_to_int mode)
 
-let display_buffer (x1,y1) (x2,y2) = funer "displayBuffer" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
+let display_buffer ((x1,y1),(x2,y2)) mode = funer "displayBuffer" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
 
-let display_all () = funer "display" (int @-> int @-> int @-> int @-> returning void) 0 0 (width () - 1) (height () - 1)
+let display_all mode = display (get_screen ()) mode
+
+let display_buffer_all mode = display_buffer (get_screen ()) mode
+
 
 let draw_line (x1,y1) (x2,y2) = if check (x1,y1) && check (x2,y2) then funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
 
