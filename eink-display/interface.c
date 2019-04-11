@@ -58,12 +58,12 @@ void display(int x1, int y1, int x2, int y2, int mode)
   displayArea(area, mode);
 }
 
-void displayBuffer(int x1, int y1, int x2, int y2)
+void displayBuffer(int x1, int y1, int x2, int y2, int mode)
 {
   Area area = getArea(x1, y1, x2, y2);
 
   loadImg(buffer, x1, y1, x2, y2);
-  displayArea(area, 2);
+  displayArea(area, mode);
 }
 
 color rgb(int r, int g, int b)

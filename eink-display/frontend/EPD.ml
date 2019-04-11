@@ -18,7 +18,7 @@ let bg = 0xFF
 let width () = funer "width" (void @-> returning int) ()
 let height () = funer "height" (void @-> returning int) ()
 
-let check (x,y) = if x < 0 || x >= width () || y < 0 || y >= height () then raise (Invalid_argument "Point outside of screen")
+let check (x,y) = if x < 0 || x >= width () || y < 0 || y >= height () then raise (Invalid_argument ("Point (" ^ string_of_int x ^ "," ^ string_of_int y ^ ") outside of screen"))
 
 let check_area (p1,p2) = check p1; check p2
 
@@ -55,7 +55,7 @@ let display ((x1,y1),(x2,y2) as a) mode =
 
 let display_buffer ((x1,y1),(x2,y2) as a) mode =
   check_area a;
-  funer "displayBuffer" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
+  funer "displayBuffer" (int @-> int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2 (mode_to_int mode)
 
 let display_all mode = display (get_screen ()) mode
 
@@ -64,6 +64,11 @@ let display_buffer_all mode = display_buffer (get_screen ()) mode
 let draw_line ((x1,y1),(x2,y2) as a) =
   check_area a;
   funer "drawLine" (int @-> int @-> int @-> int @-> returning void) x1 y1 x2 y2
+
+let draw_char ?(fg=fg) ?(bg=bg) (x,y as p) c =
+  (*TODO check area instead of point <- calculate area of char beforehand*)
+  check p;
+  funer "putChar" (int @-> int @-> char @-> int @-> int @-> returning void) x y c fg bg
 
 let draw_text ?(fg=fg) ?(bg=bg) (x,y as p) str =
   (*TODO check area instead of point <- calculate area of char beforehand*)

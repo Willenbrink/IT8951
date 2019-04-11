@@ -194,5 +194,13 @@ static uint8_t const AsciiLib[95][16] = {
 
 void GetASCIICode(uint8_t* pBuffer,uint8_t ASCII)
 {
-   memcpy(pBuffer,AsciiLib[(ASCII - 32)] ,16);
+  if(ASCII >= ' ' && ASCII < 0x7f)
+  {
+    memcpy(pBuffer,AsciiLib[(ASCII - 32)] ,16);
+  }
+  else
+  {
+    memset(pBuffer, 0xFF, 16);
+  }
+
 }
